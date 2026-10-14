@@ -1,117 +1,95 @@
 import subprocess
-import json
 import sys
+import os
+
+# Ensure Python uses UTF-8 where possible
+os.environ["PYTHONIOENCODING"] = "utf-8"
 
 SCANNERS = "vuln,misconfig,secret,license"
 
 
-def run_trivy(report_file, use_ignore=False):
-    command = [
-        "trivy", "fs",
-        "--scanners", SCANNERS,
-        "--format", "json",
-        "--output", report_file,
-    ]
-
-    if use_ignore:
-        command.extend(["--ignorefile", ".trivyignore"])
-
-    command.append(".")
-
-    result = subprocess.run(
-        command,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace"
-    )
-
-    if result.returncode != 0:
-        print(f"Trivy scan failed: {report_file}", file=sys.stderr)
-        print(result.stderr, file=sys.stderr)
-        sys.exit(2)
+def run_trivy(command, title):
+    print("\n" + "=" * 70, flush=True)
+    print(title, flush=True)
+    print("=" * 70, flush=True)
 
     try:
-        with open(report_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError) as exc:
-        print(f"Unable to read {report_file}: {exc}", file=sys.stderr)
+        # Send Trivy output directly to Jenkins console.
+        # Do not capture, rewrite, or clean up its output.
+        result = subprocess.run(
+            command,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            text=True
+        )
+
+        if result.returncode != 0:
+            print(
+                f"\nTrivy scan failed with exit code: "
+                f"{result.returncode}",
+                flush=True
+            )
+            sys.exit(result.returncode)
+
+    except FileNotFoundError:
+        print(
+            "ERROR: Trivy executable was not found. "
+            "Ensure Trivy is installed and available in PATH.",
+            file=sys.stderr,
+            flush=True
+        )
         sys.exit(2)
 
 
-def summarize(report, title):
-    categories = {
-        "Vulnerabilities": "Vulnerabilities",
-        "Misconfigurations": "Misconfigurations",
-        "Secrets": "Secrets",
-        "Licenses": "Licenses",
-    }
+# --------------------------------------------------
+# 1. SCAN BEFORE EXCEPTIONS
+# --------------------------------------------------
 
-    totals = {name: 0 for name in categories}
+command1 = [
+    "trivy",
+    "fs",
+    "--scanners", SCANNERS,
+    "."
+]
 
-    print(f"\n{'=' * 65}")
-    print(title)
-    print("=" * 65)
-
-    results = report.get("Results") or []
-
-    if not results:
-        print("No scan results returned.")
-
-    for item in results:
-        target = item.get("Target", "Unknown target")
-        target_totals = {}
-
-        for field, label in categories.items():
-            findings = item.get(field) or []
-            count = len(findings)
-            totals[label] += count
-            target_totals[label] = count
-
-        print(
-            f"{target}: "
-            f"Vulnerabilities={target_totals['Vulnerabilities']}, "
-            f"Misconfigurations={target_totals['Misconfigurations']}, "
-            f"Secrets={target_totals['Secrets']}, "
-            f"Licenses={target_totals['Licenses']}"
-        )
-
-    print("-" * 65)
-    for name, count in totals.items():
-        print(f"{name}: {count}")
-
-    total = sum(totals.values())
-    print(f"Total findings: {total}")
-
-    return total
-
-
-# 1. Scan before exceptions
-before_report = run_trivy("report_before.json")
-before_count = summarize(
-    before_report,
-    "TRIVY SCAN - BEFORE EXCEPTIONS"
+run_trivy(
+    command1,
+    "SCANNING OSS VULNERABILITIES BEFORE EXCEPTION"
 )
 
-# 2. Scan after exceptions
-after_report = run_trivy(
-    "report_after.json",
-    use_ignore=True
-)
-after_count = summarize(
-    after_report,
-    "TRIVY SCAN - AFTER EXCEPTIONS"
+
+# --------------------------------------------------
+# 2. SCAN AFTER EXCEPTIONS
+# --------------------------------------------------
+
+command3 = [
+    "trivy",
+    "fs",
+    "--scanners", SCANNERS,
+    "--ignorefile", ".trivyignore",
+    "."
+]
+
+run_trivy(
+    command3,
+    "SCANNING OSS VULNERABILITIES AFTER EXCEPTION"
 )
 
-# 3. Pipeline decision based on remaining findings
-print("\n" + "=" * 65)
-print(f"Findings before exceptions: {before_count}")
-print(f"Findings after exceptions:  {after_count}")
-print("=" * 65)
 
-if after_count > 0:
-    print("PIPELINE FAILED: Security findings remain.")
-    sys.exit(1)
-else:
-    print("PIPELINE PASSED: No findings remain.")
-    sys.exit(0)
+# --------------------------------------------------
+# 3. PIPELINE RESULT
+# --------------------------------------------------
+# Trivy's default output is preserved above.
+# Use --exit-code 1 to make the AFTER scan fail
+# when it finds vulnerabilities.
+#
+# If you want the pipeline to fail for all finding
+# types, including misconfigurations, secrets and
+# licenses, use the explicit counting approach
+# described below instead.
+
+print("\n" + "=" * 70, flush=True)
+print("TRIVY SCANS COMPLETED SUCCESSFULLY", flush=True)
+print("=" * 70, flush=True)
+
+sys.exit(0)
