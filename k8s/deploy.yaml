@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test1
+  labels:
+    app: v1
+spec:
+  containers:
+    name: c1
+    image:  nexus-docker-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/my-app:61
