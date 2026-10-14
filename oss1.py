@@ -2,94 +2,80 @@ import subprocess
 import sys
 import os
 
-# Ensure Python uses UTF-8 where possible
+# Configure UTF-8 for Python and child processes
 os.environ["PYTHONIOENCODING"] = "utf-8"
+os.environ["LANG"] = "C.UTF-8"
+os.environ["LC_ALL"] = "C.UTF-8"
 
 SCANNERS = "vuln,misconfig,secret,license"
 
 
 def run_trivy(command, title):
-    print("\n" + "=" * 70, flush=True)
-    print(title, flush=True)
+    print("\n" + title, flush=True)
     print("=" * 70, flush=True)
 
     try:
-        # Send Trivy output directly to Jenkins console.
-        # Do not capture, rewrite, or clean up its output.
         result = subprocess.run(
             command,
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-            text=True
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=os.environ.copy()
         )
+
+        # Print output without modifying Trivy's formatting.
+        print(result.stdout, end="", flush=True)
 
         if result.returncode != 0:
             print(
-                f"\nTrivy scan failed with exit code: "
+                f"\nTrivy command failed with exit code "
                 f"{result.returncode}",
                 flush=True
             )
-            sys.exit(result.returncode)
+            return False
+
+        return True
 
     except FileNotFoundError:
         print(
-            "ERROR: Trivy executable was not found. "
-            "Ensure Trivy is installed and available in PATH.",
+            "ERROR: Trivy executable not found in PATH.",
             file=sys.stderr,
             flush=True
         )
         sys.exit(2)
 
 
-# --------------------------------------------------
-# 1. SCAN BEFORE EXCEPTIONS
-# --------------------------------------------------
-
+# 1. Scan before exceptions
 command1 = [
-    "trivy",
-    "fs",
+    "trivy", "fs",
     "--scanners", SCANNERS,
     "."
 ]
 
-run_trivy(
+if not run_trivy(
     command1,
     "SCANNING OSS VULNERABILITIES BEFORE EXCEPTION"
-)
+):
+    sys.exit(2)
 
 
-# --------------------------------------------------
-# 2. SCAN AFTER EXCEPTIONS
-# --------------------------------------------------
-
+# 2. Scan after exceptions
 command3 = [
-    "trivy",
-    "fs",
+    "trivy", "fs",
     "--scanners", SCANNERS,
     "--ignorefile", ".trivyignore",
+    "--exit-code", "1",
     "."
 ]
 
-run_trivy(
+if not run_trivy(
     command3,
     "SCANNING OSS VULNERABILITIES AFTER EXCEPTION"
-)
+):
+    sys.exit(1)
 
 
-# --------------------------------------------------
-# 3. PIPELINE RESULT
-# --------------------------------------------------
-# Trivy's default output is preserved above.
-# Use --exit-code 1 to make the AFTER scan fail
-# when it finds vulnerabilities.
-#
-# If you want the pipeline to fail for all finding
-# types, including misconfigurations, secrets and
-# licenses, use the explicit counting approach
-# described below instead.
-
-print("\n" + "=" * 70, flush=True)
-print("TRIVY SCANS COMPLETED SUCCESSFULLY", flush=True)
-print("=" * 70, flush=True)
-
+print("\nOSS scan stage passed.", flush=True)
 sys.exit(0)
