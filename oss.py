@@ -2,6 +2,10 @@ import subprocess
 import re
 import sys
 
+# command1 = ["trivy","fs","--scanners","vuln,misconfig,secret,license","--ignorefile","","."]
+# command2 = ["trivy","image","--input","/tmp/myapp.tar","--scanners", "vuln,misconfig,secret"]
+# command3 = ["trivy", "fs", "--scanners", "vuln,misconfig,secret,license","--ignorefile", ".trivyignore", "."]
+
 command1 = ["trivy","fs","--scanners","vuln,misconfig,secret,license","--ignorefile","","."]
 command2 = ["trivy","image","--input","/tmp/myapp.tar","--scanners", "vuln,misconfig,secret"]
 command3 = ["trivy", "fs", "--scanners", "vuln,misconfig,secret,license","--ignorefile", ".trivyignore", "."]
