@@ -1,87 +1,117 @@
 import subprocess
-import re
+import json
 import sys
 
-# FIX: Removed '--ignorefile ""' from command1 to avoid CLI parser crashes
-command1 = [
-    "trivy", "fs", 
-    "--scanners", "vuln,misconfig,secret,license",
-    "--output", "report_before.txt",
-    "."
-]
+SCANNERS = "vuln,misconfig,secret,license"
 
-command2 = ["trivy", "image", "--input", "/tmp/myapp.tar", "--scanners", "vuln,misconfig,secret"]
 
-# FIX: Added '--output' to write directly to a text file
-command3 = [
-    "trivy", "fs", 
-    "--scanners", "vuln,misconfig,secret,license",
-    "--ignorefile", ".trivyignore", 
-    "--output", "report_after.txt",
-    "."
-]
+def run_trivy(report_file, use_ignore=False):
+    command = [
+        "trivy", "fs",
+        "--scanners", SCANNERS,
+        "--format", "json",
+        "--output", report_file,
+    ]
 
-# --- 1. RUN FIRST SCAN ---
-print("--- SCANNING OSS VULNERABILITIES BEFORE EXCEPTION ---")
-subprocess.run(command1, capture_output=True, text=True)
+    if use_ignore:
+        command.extend(["--ignorefile", ".trivyignore"])
 
-try:
-    with open("report_before.txt", "r") as f:
-        content = f.read()
-        # Clean up the box-drawing characters for the Jenkins visual console log
-        clean_content = content.replace("", "").replace("│", "|").replace("─", "-").replace("┌", "+").replace("┐", "+").replace("└", "+").replace("┘", "+")
-        print(clean_content)
-except FileNotFoundError:
-    print("Error: report_before.txt was not created.", file=sys.stderr)
+    command.append(".")
 
-print("==============================================")
-print("--- SCANNING OSS VULNERABILITIES AFTER EXCEPTION ---")
-print("=============================================")
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace"
+    )
 
-# --- 2. RUN SECOND SCAN ---
-subprocess.run(command3, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Trivy scan failed: {report_file}", file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+        sys.exit(2)
 
-report_after_content = ""
-try:
-    with open("report_after.txt", "r") as f:
-        report_after_content = f.read()
-        # Clean up the box-drawing characters for the Jenkins visual console log
-        clean_content = report_after_content.replace("", "").replace("│", "|").replace("─", "-").replace("┌", "+").replace("┐", "+").replace("└", "+").replace("┘", "+")
-        print(clean_content)
-except FileNotFoundError:
-    print("Error: report_after.txt was not created.", file=sys.stderr)
+    try:
+        with open(report_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"Unable to read {report_file}: {exc}", file=sys.stderr)
+        sys.exit(2)
+
+
+def summarize(report, title):
+    categories = {
+        "Vulnerabilities": "Vulnerabilities",
+        "Misconfigurations": "Misconfigurations",
+        "Secrets": "Secrets",
+        "Licenses": "Licenses",
+    }
+
+    totals = {name: 0 for name in categories}
+
+    print(f"\n{'=' * 65}")
+    print(title)
+    print("=" * 65)
+
+    results = report.get("Results") or []
+
+    if not results:
+        print("No scan results returned.")
+
+    for item in results:
+        target = item.get("Target", "Unknown target")
+        target_totals = {}
+
+        for field, label in categories.items():
+            findings = item.get(field) or []
+            count = len(findings)
+            totals[label] += count
+            target_totals[label] = count
+
+        print(
+            f"{target}: "
+            f"Vulnerabilities={target_totals['Vulnerabilities']}, "
+            f"Misconfigurations={target_totals['Misconfigurations']}, "
+            f"Secrets={target_totals['Secrets']}, "
+            f"Licenses={target_totals['Licenses']}"
+        )
+
+    print("-" * 65)
+    for name, count in totals.items():
+        print(f"{name}: {count}")
+
+    total = sum(totals.values())
+    print(f"Total findings: {total}")
+
+    return total
+
+
+# 1. Scan before exceptions
+before_report = run_trivy("report_before.json")
+before_count = summarize(
+    before_report,
+    "TRIVY SCAN - BEFORE EXCEPTIONS"
+)
+
+# 2. Scan after exceptions
+after_report = run_trivy(
+    "report_after.json",
+    use_ignore=True
+)
+after_count = summarize(
+    after_report,
+    "TRIVY SCAN - AFTER EXCEPTIONS"
+)
+
+# 3. Pipeline decision based on remaining findings
+print("\n" + "=" * 65)
+print(f"Findings before exceptions: {before_count}")
+print(f"Findings after exceptions:  {after_count}")
+print("=" * 65)
+
+if after_count > 0:
+    print("PIPELINE FAILED: Security findings remain.")
     sys.exit(1)
-
-# --- 3. PARSE TOTALS SAFELY FROM THE FILE CONTENT ---
-m1 = 0
-m2 = 0
-
-for line in report_after_content.splitlines():
-    if "Total:" in line:
-        match = re.search(r"Total:\s+(\d+)", line)
-        if match:
-            val = int(match.group(1))
-            print("Found Vulnerabilities group:", val)
-            m1 += val  # Accumulate instead of overwriting
-
-    elif "Failures:" in line:
-        match = re.search(r"Failures:\s+(\d+)", line)
-        if match:
-            val = int(match.group(1))
-            print("Found Failures group:", val)
-            m2 += val
-
-count = m1 + m2
-print("=============================================")
-print(f"Final Aggregated Count: {count}")
-
-# --- 4. PIPELINE PASS/FAIL DECISION ---
-if count > 0:
-   print("Pipeline is Failed because of Vulnerables found:", count)
-   sys.exit(1)
-elif count == 0:
-   print("Pipeline has Zero Vulnerables & OSS Scan Stage is passed")
-   sys.exit(0)
 else:
-   print("There is some issue please check the script")
-   sys.exit(1)
+    print("PIPELINE PASSED: No findings remain.")
+    sys.exit(0)
