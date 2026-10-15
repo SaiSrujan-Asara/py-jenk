@@ -1,0 +1,10 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: nexus-ui
+spec:
+  to:
+    kind: Service
+    name: py-app
+  port:
+    targetPort: 80
