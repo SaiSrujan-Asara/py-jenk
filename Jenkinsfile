@@ -36,7 +36,7 @@ pipeline {
                  export TOKEN="sqp_1cd0b29a20244ee3276817345ff57fce2ee0e5ec"
                  sonar-scanner -Dsonar.host.url=$SONARQUBE_URL -Dsonar.token=$TOKEN
                  echo "Sonar scanner scanned successfullt"
-                 sleep(10)
+                 sleep 10
                  python3 sonar.py
                  '''
             }
