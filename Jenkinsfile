@@ -35,6 +35,8 @@ pipeline {
                  export PROJECT_KEY="py-app1"
                  export TOKEN="sqp_1cd0b29a20244ee3276817345ff57fce2ee0e5ec"
                  sonar-scanner -Dsonar.host.url=$SONARQUBE_URL -Dsonar.token=$TOKEN
+                 echo "Sonar scanner scanned successfullt"
+                 sleep(10)
                  python3 sonar.py
                  '''
             }
@@ -73,6 +75,20 @@ pipeline {
                             --export-cache "type=registry,ref=${REGISTRY}/${IMAGE_NAME}:buildcache-${BUILD_NUMBER},mode=max"
         
                         echo "Image successfully built and pushed."
+                    '''
+                }
+            }
+
+        }
+        stage('OPEN SHIFT LOGIN'){
+            steps{
+                withCredentials([string(credentialsId: 'openshift-k8s',variable: 'OPENSHIFT_TOKEN')]) 
+                {
+                    sh '''
+                        oc login https://api.rm1.0a51.p1.openshiftapps.com:6443 \
+                        --token="$OPENSHIFT_TOKEN"
+
+                        oc project
                     '''
                 }
             }
