@@ -71,7 +71,7 @@ pipeline {
                             --local context=. \
                             --local dockerfile=. \
                             --output "type=image,name=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER},push=true" \
-                            --import-cache "type=registry,ref=${REGISTRY}/${IMAGE_NAME}:buildcache" \
+                            --import-cache "type=registry,ref=${REGISTRY}/${IMAGE_NAME}:buildcache-${BUILD_NUMBER}" \
                             --export-cache "type=registry,ref=${REGISTRY}/${IMAGE_NAME}:buildcache-${BUILD_NUMBER},mode=max"
         
                         echo "Image successfully built and pushed."
