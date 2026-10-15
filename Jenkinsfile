@@ -92,7 +92,7 @@ pipeline {
                         oc project
 
                         cd k8s
-                        oc apply -f deploy.yaml
+                        oc apply -f .
                     '''
                 }
             }
