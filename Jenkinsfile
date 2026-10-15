@@ -15,7 +15,7 @@ pipeline {
         }
         stage('OSS SCANNER'){
             options {
-              timeout(time: 30, unit: 'MINUTES') 
+              timeout(time: 59, unit: 'MINUTES') 
             }
             steps {
               sh(script: '''
