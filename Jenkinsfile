@@ -89,6 +89,9 @@ pipeline {
                         --token="$OPENSHIFT_TOKEN"
 
                         oc project
+
+                        cd k8s
+                        kubectl apply -f deploy.yaml
                     '''
                 }
             }
