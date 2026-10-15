@@ -42,6 +42,9 @@ pipeline {
             }
         }
            stage('DOCKER IMAGE BUILD & PUSH') {
+            options {
+                timeout(time: 15, unit: 'MINUTES')
+            }
              environment {
                 REGISTRY = 'nexus-docker-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com'
                 IMAGE_NAME = 'my-app'
@@ -71,9 +74,7 @@ pipeline {
                             --local context=. \
                             --local dockerfile=. \
                             --output "type=image,name=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER},push=true" \
-                            --import-cache "type=registry,ref=${REGISTRY}/${IMAGE_NAME}:buildcache-${BUILD_NUMBER}" \
-                            --export-cache "type=registry,ref=${REGISTRY}/${IMAGE_NAME}:buildcache-${BUILD_NUMBER},mode=max"
-        
+                            
                         echo "Image successfully built and pushed."
                     '''
                 }
