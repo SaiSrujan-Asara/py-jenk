@@ -74,6 +74,7 @@ pipeline {
                             --local context=. \
                             --local dockerfile=. \
                             --output "type=image,name=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER},push=true" \
+                            --progress=plain
                             
                         echo "Image successfully built and pushed."
                     '''
