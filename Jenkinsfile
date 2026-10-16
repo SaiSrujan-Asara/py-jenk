@@ -70,11 +70,12 @@ pipeline {
                         buildctl \
                             --addr tcp://buildkitd:1234 \
                             build \
+                            --progress=plain \
                             --frontend dockerfile.v0 \
                             --local context=. \
                             --local dockerfile=. \
-                            --output "type=image,name=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER},push=true" \
-                            --progress=plain
+                            --output "type=image,name=${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER},push=true"
+                            
                             
                         echo "Image successfully built and pushed."
                     '''
