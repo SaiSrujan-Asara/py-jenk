@@ -92,6 +92,8 @@ pipeline {
                         oc project
 
                         cd k8s
+                        sed -i "s/\\${BUILD_NUMBER}/${BUILD_NUMBER}/g" deploy.yaml
+                        cat deploy.yaml
                         oc apply -f .
                     '''
                 }
