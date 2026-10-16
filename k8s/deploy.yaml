@@ -3,12 +3,28 @@ kind: Deployment
 metadata:
   name: py-app
   labels:
-    app: v1
+    app: py-app
 spec:
-  replicas: 1
+  replicas: 3
+
+  # Deployment strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Wait for a new Pod to remain ready before
+  # considering the rollout ready
+  minReadySeconds: 5
+
+  # Allow time for rollout progress
+  progressDeadlineSeconds: 120
+
   selector:
     matchLabels:
       app: v1
+
   template:
     metadata:
       labels:
@@ -17,29 +33,28 @@ spec:
       containers:
         - name: c1
           image: nexus-docker-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/my-app:${BUILD_NUMBER}
-          ports:
-            - containerPort: 5000
 
-          # Liveness Probe
+          ports:
+            - name: http
+              containerPort: 5000
+
           livenessProbe:
             httpGet:
               path: /
-              port: 5000
+              port: http
             initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 3
 
-          # Readiness Probe
           readinessProbe:
             httpGet:
               path: /
-              port: 5000
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 2
             failureThreshold: 3
-            successThreshold: 1
 
       imagePullSecrets:
         - name: nexus-secret

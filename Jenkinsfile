@@ -97,6 +97,15 @@ pipeline {
                         sed -i "s/\\${BUILD_NUMBER}/${BUILD_NUMBER}/g" deploy.yaml
                         cat deploy.yaml
                         oc apply -f .
+
+                        echo "===================================================="
+                        echo "================DEPLOYMENT STATUS===================="
+                        echo "===================================================="
+
+                        oc get deployment py-app
+                        oc get replicasets
+                        oc get pods -o wide
+                        oc rollout status deployment/py-app
                     '''
                 }
             }

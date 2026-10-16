@@ -1,0 +1,8 @@
+sonar.py
+sonar-project.properties
+README.md
+oss.py
+Jenkinsfile
+Dockerfile
+.trivyignore
+/k8s/*
