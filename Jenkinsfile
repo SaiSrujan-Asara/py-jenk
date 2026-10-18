@@ -41,7 +41,7 @@ pipeline {
                  '''
             }
         }
-           stage('DOCKER IMAGE BUILD & PUSH') {
+        stage('DOCKER IMAGE BUILD & PUSH') {
             options {
                 timeout(time: 15, unit: 'MINUTES')
             }
