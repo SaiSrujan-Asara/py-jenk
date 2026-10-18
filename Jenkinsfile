@@ -81,6 +81,23 @@ pipeline {
                     '''
                 }
             }
+        stage('HELM PACKAGE AND PUSH'){
+            steps{
+                sh '''
+                   cd k8s/app
+                  
+                   helm lint .
+                   
+                   sleep 3
+
+                   helm template . --set image_version=${BUILD_NUMBER}
+
+                   sleep 3
+
+                   helm package 
+                '''
+            }
+        }
 
         }
         stage('OPEN SHIFT LOGIN'){
@@ -107,14 +124,7 @@ pipeline {
                         // oc get pods -o wide
                         // oc rollout status deployment/py-app
 
-                        helm lint .
-                        sleep 3
-
-                        helm template . --set image_version=${BUILD_NUMBER}
-
-                        sleep 3
-
-                        helm upgrade --install myapp . \
+                        helm upgrade --install myapp ./app \
                         --set image_version=${BUILD_NUMBER}
 
                         helm status myapp 
