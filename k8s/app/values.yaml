@@ -1,0 +1,5 @@
+replicas: 3
+
+name: py-app
+
+image_version: ${BUILD_NUMBER}

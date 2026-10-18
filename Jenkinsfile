@@ -94,18 +94,30 @@ pipeline {
                         oc project
 
                         cd k8s
-                        sed -i "s/\\${BUILD_NUMBER}/${BUILD_NUMBER}/g" deploy.yaml
-                        cat deploy.yaml
-                        oc apply -f .
+                        // sed -i "s/\\${BUILD_NUMBER}/${BUILD_NUMBER}/g" deploy.yaml
+                        // cat deploy.yaml
+                        // oc apply -f .
 
-                        echo "===================================================="
-                        echo "================DEPLOYMENT STATUS===================="
-                        echo "===================================================="
+                        // echo "===================================================="
+                        // echo "================DEPLOYMENT STATUS===================="
+                        // echo "===================================================="
 
-                        oc get deployment py-app
-                        oc get replicasets
-                        oc get pods -o wide
-                        oc rollout status deployment/py-app
+                        // oc get deployment py-app
+                        // oc get replicasets
+                        // oc get pods -o wide
+                        // oc rollout status deployment/py-app
+
+                        helm lint .
+                        sleep 3
+
+                        helm template . --set image_version=${BUILD_NUMBER}
+
+                        sleep 3
+
+                        helm upgrade --install myapp . \
+                        --set image_version=${BUILD_NUMBER}
+
+                        helm status myapp 
                     '''
                 }
             }

@@ -1,10 +1,10 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: py-app
+  name: {{ .Values.name }}
 spec:
   to:
     kind: Service
-    name: py-app
+    name: {{ .Values.name }}
   port:
     targetPort: http
