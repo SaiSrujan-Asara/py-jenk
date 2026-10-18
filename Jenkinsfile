@@ -81,6 +81,7 @@ pipeline {
                     '''
                 }
             }
+        }
         stage('HELM PACKAGE AND PUSH'){
             steps{
                 sh '''
@@ -97,8 +98,6 @@ pipeline {
                    helm package 
                 '''
             }
-        }
-
         }
         stage('OPEN SHIFT LOGIN'){
             steps{
