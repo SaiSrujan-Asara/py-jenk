@@ -81,17 +81,18 @@ pipeline {
         stage('HELM PACKAGE AND PUSH'){
             steps{
                 sh '''
-                   cd k8s/app
+                   cd k8s
                   
-                   helm lint .
+                   helm lint ./app
                    
                    sleep 3
 
-                   helm template . --set image_version=${BUILD_NUMBER}
+                   helm template ./app --set image_version=${BUILD_NUMBER}
 
                    sleep 3
 
-                   helm package /app
+                   helm package ./app
+
                 '''
             }
         }
