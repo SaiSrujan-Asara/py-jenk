@@ -59,7 +59,7 @@ pipeline {
                         echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}"
         
                         # Authenticate with GHCR
-                        docker login ghcr.io -u $GHCR_USER -p $GHCR_PASS'
+                        docker login ghcr.io -u $GHCR_USER -p $GHCR_PASS
         
                         # Build and push using BuildKit
                         buildctl \
