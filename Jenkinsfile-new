@@ -125,7 +125,7 @@ pipeline {
                         "${NEXUS_URL}/${CHART_NAME}-${CHART_VERSION}.tgz"
 
                         # 2. Install the downloaded package
-                        helm upgrade --install my-app-release \
+                        helm upgrade --install myapp \
                         "./${CHART_NAME}-${CHART_VERSION}.tgz" \
                         --wait
                     '''
