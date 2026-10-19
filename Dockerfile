@@ -2,7 +2,7 @@
 FROM ghcr.io/saisrujan-asara/python:3.12.2-slim
 
 LABEL maintainer="rich"
-LABEL org.opencontainers.image.source="https://github.com/SaiSrujan-Asara/py-jenk"
+LABEL org.opencontainers.image.source="https://github.com/saisrujan-asara/py-jenk"
 
 # Turn off buffering to ensure logs stream immediately to Docker
 ENV PYTHONDONTWRITEBYTECODE=1 \
