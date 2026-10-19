@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: c1
-          image: nexus-docker-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/my-app:{{ .Values.image_version }}
+          image: ghcr.io/saisrujan-asara/my-app:{{ .Values.image_version }}
 
           ports:
             - name: http
