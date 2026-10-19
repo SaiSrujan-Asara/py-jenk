@@ -54,4 +54,4 @@ spec:
             failureThreshold: 3
 
       imagePullSecrets:
-        - name: nexus-secret
+        - name: ghcr-secret
