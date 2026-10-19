@@ -93,6 +93,10 @@ pipeline {
 
                    helm package ./app
 
+                   curl -u 'admin:Rich@0987654321' \
+                   --upload-file app* \
+                   https://nexus-ui-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/repository/py-app/
+
                 '''
             }
         }
