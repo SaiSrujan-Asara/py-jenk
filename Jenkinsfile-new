@@ -91,7 +91,7 @@ pipeline {
 
                    sleep 3
 
-                   helm package 
+                   helm package ./app
                 '''
             }
         }
