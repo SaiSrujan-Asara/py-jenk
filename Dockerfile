@@ -1,5 +1,5 @@
 # Use a specific, immutable version for stability
-FROM python:3.12.2-slim
+FROM ghcr.io/saisrujan-asara/python:3.12.2-slim
 
 LABEL maintainer="rich"
 LABEL org.opencontainers.image.source="https://github.com/SaiSrujan-Asara/py-jenk"
