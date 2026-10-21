@@ -72,7 +72,7 @@ pipeline {
                         # Build and push using BuildKit
                         buildctl \
                             --debug \
-                            --addr tcp://buildkitd:1234 \
+                            --addr tcp://buildkitd.default.svc.cluster.local:1234 \
                             build \
                             --progress=plain \
                             --frontend dockerfile.v0 \
