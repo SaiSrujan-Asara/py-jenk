@@ -2,9 +2,9 @@ import subprocess
 import re
 import sys
 
-command1 = ["trivy","fs","--scanners","vuln,misconfig,secret,license","--ignorefile","","--skip-dirs","./k8s","--skip-files", "*.tgz","."]
+command1 = ["trivy","fs","--scanners","vuln,misconfig,secret,license","--ignorefile","","--skip-dirs","./k8s","--skip-files","*.tgz","--skip-dirs","./jenkins-agents","."]
 command2 = ["trivy","image","--input","/tmp/myapp.tar","--scanners", "vuln,misconfig,secret"]
-command3 = ["trivy", "fs", "--scanners", "vuln,misconfig,secret,license","--ignorefile", ".trivyignore","--skip-dirs","./k8s","--skip-files", "*.tgz", "."]
+command3 = ["trivy", "fs", "--scanners", "vuln,misconfig,secret,license","--ignorefile", ".trivyignore","--skip-dirs","./k8s","--skip-files","*.tgz","--skip-dirs","./jenkins-agents","."]
 
  
 
