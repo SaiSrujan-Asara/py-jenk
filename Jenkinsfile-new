@@ -40,6 +40,8 @@ pipeline {
                  sonar-scanner -Dsonar.host.url=$SONARQUBE_URL -Dsonar.token=$TOKEN
                  echo "Sonar scanner scanned successfullt"
                  sleep 10
+                 python3 -m venv .venv
+                 pip install requests
                  python3 sonar.py
                  '''
                 }
