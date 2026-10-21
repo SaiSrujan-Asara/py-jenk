@@ -6,3 +6,4 @@ Jenkinsfile
 Dockerfile
 .trivyignore
 /k8s/*
+venv*
