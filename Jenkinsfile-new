@@ -1,7 +1,7 @@
 pipeline {
     agent{
         node {
-            label "kubeagent"
+            label "kubeagent"     //Pod Template label
         }
     }
 
@@ -18,11 +18,13 @@ pipeline {
               timeout(time: 59, unit: 'MINUTES') 
             }
             steps {
-              sh(script: '''
-                 python3 -m venv .venv
-                 .venv/bin/pip install -r requirements.txt
-                 python3 oss.py
-                 ''', encoding: 'UTF-8')
+              container('ci-image') {                //Container name
+                sh(script: '''
+                   python3 -m venv .venv
+                   .venv/bin/pip install -r requirements.txt
+                   python3 oss.py
+                   ''', encoding: 'UTF-8')
+                }
             }
         }
         stage('SONAR QUBE STAGE'){
@@ -30,6 +32,7 @@ pipeline {
                 timeout(time: 15, unit: 'MINUTES')
             }
             steps{
+                container('ci-image') {
                 sh '''
                  export SONARQUBE_URL="http://sonarqube:9000"
                  export PROJECT_KEY="py-app1"
@@ -39,7 +42,8 @@ pipeline {
                  sleep 10
                  python3 sonar.py
                  '''
-            }
+                }
+            }    
         }
         stage('DOCKER IMAGE BUILD & PUSH') {
             options {
@@ -51,8 +55,9 @@ pipeline {
             }
         
             steps {
-                withCredentials([usernamePassword(credentialsId: 'ghcr',usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_PASS')]) 
-                {
+                container('ci-image') {
+                  withCredentials([usernamePassword(credentialsId: 'ghcr',usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_PASS')]) 
+                  {
                     sh '''
                         set -eu
         
@@ -75,6 +80,7 @@ pipeline {
                             
                         echo "Image successfully built and pushed."
                     '''
+                    }
                 }
             }
         }
