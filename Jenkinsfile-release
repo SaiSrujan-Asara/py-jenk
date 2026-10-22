@@ -126,16 +126,22 @@ pipeline {
     }
 }
 
+def getBranchName() {
+    return env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+}
+
 def isDevBranch() {
-    return env.BRANCH_NAME == 'main' ||
-           env.BRANCH_NAME == 'development1' ||
-           env.BRANCH_NAME.startsWith('feature/') ||
-           env.BRANCH_NAME.startsWith('bugfix/') ||
-           env.BRANCH_NAME.startsWith('PR-')
+    def branch = getBranchName().replaceFirst(/^origin\//, '')
+
+    return branch == 'main' ||
+           branch == 'development1' ||
+           branch.startsWith('feature/') ||
+           branch.startsWith('bugfix/') ||
+           branch.startsWith('PR-')
 }
 
 def isReleaseBranch() {
-    return env.BRANCH_NAME ==~ /release\/.+/
+    return getBranchName() ==~ /release\/.+/
 }
 
 def runOSSScanner() {
