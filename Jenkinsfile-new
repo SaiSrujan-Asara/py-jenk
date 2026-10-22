@@ -67,7 +67,16 @@ pipeline {
                         echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}"
         
                         # Authenticate with GHCR
-                        docker login ghcr.io -u $GHCR_USER -p $GHCR_PASS
+                        export DOCKER_CONFIG="$(mktemp -d)"
+                        chmod 700 "$DOCKER_CONFIG"
+                        trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+
+                        AUTH=$(printf '%s:%s' "$GHCR_USER" "$GHCR_PASS" | base64 | tr -d '\\n')
+
+                        printf '{"auths":{"ghcr.io":{"auth":"%s"}}}\n' "$AUTH" \
+                        > "$DOCKER_CONFIG/config.json"
+
+                        chmod 600 "$DOCKER_CONFIG/config.json"
         
                         # Build and push using BuildKit
                         buildctl \
