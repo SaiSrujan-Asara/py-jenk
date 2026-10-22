@@ -1,0 +1,32 @@
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-agent
+  labels: kubeagent-test1
+spec:
+  containers:
+    - name: jnlp
+      image: jenkins/inbound-agent:jdk21
+
+    - name: ci-image
+      image: ghcr.io/saisrujan-asara/ci-image:v1
+      command:
+        - sleep
+      args:
+        - "9999999"
+      volumeMounts:
+        - name: pip-cache
+          mountPath: /pip-cache
+
+    - name: cd-image
+      image: ghcr.io/saisrujan-asara/cd-image:v2
+      command:
+        - sleep
+      args:
+        - "9999999"
+
+  volumes:
+    - name: pip-cache
+      persistentVolumeClaim:
+        claimName: pip-cache-pvc

@@ -1,7 +1,8 @@
 pipeline {
-    agent{
-        node {
-            label "kubeagent"     //Pod Template label
+    agent {
+        kubernetes {
+            yamlFile 'jenkins-agents/buildconfig.yaml'
+            defaultContainer 'ci-image'
         }
     }
 
