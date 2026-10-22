@@ -23,6 +23,17 @@ pipeline {
               credentialsId: 'github-repo1'
             }
         }
+
+        stage(){
+            when{
+                expression { isReleaseBranch() || isDevBranch() }
+            }
+            steps {
+                script {
+                    installPythonDependencies()
+                }
+            }
+        }
         stage('OSS SCANNER'){
             when {
                 expression { isReleaseBranch() || isDevBranch() }
@@ -157,12 +168,24 @@ def isReleaseBranch() {
     return getBranchName() ==~ /release\/.+/
 }
 
+def installPythonDependencies() {
+    container('ci-image') {
+        sh '''
+            python3 -m venv .venv
+            .venv/bin/pip install \
+                --cache-dir /pip-cache \
+                --retries 10 \
+                --timeout 120 \
+                -r requirements.txt
+        '''
+    }
+}
+
+
 def runOSSScanner() {
     container('ci-image') {
         sh(script: '''
-            python3 -m venv .venv
-            .venv/bin/pip install -r requirements.txt
-            python3 oss.py
+            .venv/bin/python oss.py
         ''', encoding: 'UTF-8')
     }
 }
@@ -182,10 +205,7 @@ def runSonarQube() {
             echo "Sonar scanner scanned successfully"
             sleep 10
 
-            python3 -m venv .venv
-            . .venv/bin/activate
-            pip install --retries 10 --timeout 120 requests
-            python3 sonar.py
+            .venv/bin/python sonar.py
         '''
     }
 }
@@ -209,7 +229,7 @@ def runTagGen() {
                 git config user.email "jenkins@example.com"
                 git config user.name "jenkins"
 
-                python3 git.py
+                .venv/bin/python git.py
 
                 test -s tag.txt
             '''
