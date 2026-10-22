@@ -1,0 +1,24 @@
+
+pipeline {
+    agent {
+        kubernetes {
+            yamlFile 'jenkins-agents/buildconfig.yaml'
+            defaultContainer 'cd-image'
+        }
+    }
+
+
+    stages {
+        stage('Check FT access') {
+            steps {
+                sh '''
+                    set -eu
+                    kubectl version
+                    kubectl get namespace
+                    kubectl auth can-i create deployments
+                    kubectl get deployments 
+                '''
+            }
+        }
+    }
+}
