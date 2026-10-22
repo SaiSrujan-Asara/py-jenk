@@ -16,7 +16,7 @@ pipeline {
                 }
             }
         }
-        stage('check out') {
+        stage('CHECK OUT') {
             steps {
               git url: 'https://github.com/SaiSrujan-Asara/py-jenk.git/',
               branch: "${env.BRANCH_NAME}",
@@ -24,7 +24,7 @@ pipeline {
             }
         }
 
-        stage(){
+        stage('INSTALL PYTHON DEPENDECIES'){
             when{
                 expression { isReleaseBranch() || isDevBranch() }
             }
