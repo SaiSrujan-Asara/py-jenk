@@ -7,3 +7,4 @@ Dockerfile
 .trivyignore
 /k8s/*
 venv*
+jenkins-agents/*
