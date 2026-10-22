@@ -19,7 +19,7 @@ pipeline {
         stage('check out') {
             steps {
               git url: 'https://github.com/SaiSrujan-Asara/py-jenk.git/',
-              branch: 'main',
+              branch: "${env.BRANCH_NAME}",
               credentialsId: 'github-repo1'
             }
         }
