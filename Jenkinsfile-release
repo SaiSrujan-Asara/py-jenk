@@ -190,25 +190,31 @@ def runSonarQube() {
 
 
 def runTagGen() {
-  container('ci-image') {
-    withCredentials([usernamePassword(
-        credentialsId: 'ghcr',
-        usernameVariable: 'GHCR_USER',
-        passwordVariable: 'GHCR_PASS')]) {
-      sh '''
-        git config --global --add safe.directory "$PWD"
-        git config user.email "jenkins@example.com"
-        git config user.name  "jenkins"
+    container('ci-image') {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'ghcr',
+                usernameVariable: 'GHCR_USER',
+                passwordVariable: 'GHCR_PASS'
+            )
+        ]) {
+            sh '''
+                set +x
+                set -e
 
-        python3 -m venv .venv
-        . .venv/bin/activate
-        python3 git.py
-      '''
+                git config --global --add safe.directory "$PWD"
+                git config user.email "jenkins@example.com"
+                git config user.name "jenkins"
+
+                python3 git.py
+
+                test -s tag.txt
+            '''
+        }
+
+        env.IMAGE_TAG = readFile('tag.txt').trim()
+        echo "Image tag: ${env.IMAGE_TAG}"
     }
-    // read the tag and make it available to later steps
-    env.IMAGE_TAG = readFile('tag.txt').trim()
-    echo "Image tag: ${env.IMAGE_TAG}"
-  }
 }
 
 def buildAndPushDockerImage() {
