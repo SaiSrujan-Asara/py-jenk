@@ -14,6 +14,7 @@ pipeline {
                 sh '''
                     set -eu
                     kubectl version
+                    kubectl auth whoami
                     kubectl auth can-i create deployments -n prod
                     kubectl get deployments -n prod
                 '''
