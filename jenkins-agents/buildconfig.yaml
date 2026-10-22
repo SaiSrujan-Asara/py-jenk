@@ -5,6 +5,7 @@ metadata:
   name: kube-agent
   labels:
     pod-template-source: kubeagent-test1
+  namespace: jenkins-agent
 spec:
   containers:
     - name: jnlp
