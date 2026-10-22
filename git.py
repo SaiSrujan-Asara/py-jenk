@@ -5,21 +5,10 @@ import sys
 from urllib.parse import quote
 
 
-def run_command(command):
-    """Run a command and fail with a useful error message if needed."""
-    return subprocess.run(
-        command,
-        check=True,
-        text=True,
-        capture_output=True
-    )
-
-
 def main():
     # 1. Read Jenkins environment variables
     branch_name = os.getenv("BRANCH_NAME") or os.getenv("GIT_BRANCH", "")
     current_build = os.getenv("BUILD_NUMBER", "")
-
     user = os.getenv("GHCR_USER", "")
     token = os.getenv("GHCR_PASS", "")
 
@@ -46,22 +35,25 @@ def main():
     clean_version = branch_name[len("release/"):]
     tag_candidate = f"{clean_version}{current_build}"
 
-    # Reject invalid Git tag names
+    # Validate Git tag format
     check_tag = subprocess.run(
-        ["git", "check-ref-format", "refs/tags/" + tag_candidate],
+        ["git", "check-ref-format", f"refs/tags/{tag_candidate}"],
         capture_output=True,
         text=True
     )
 
     if check_tag.returncode != 0:
-        print(f"ERROR: Invalid Git tag name: {tag_candidate}")
+        print(f"ERROR: Invalid Git tag: {tag_candidate}")
         sys.exit(1)
 
     print(f"Checking tag availability: {tag_candidate}")
 
     # 7. Get origin URL
-    origin_url = run_command(
-        ["git", "remote", "get-url", "origin"]
+    origin_url = subprocess.run(
+        ["git", "remote", "get-url", "origin"],
+        capture_output=True,
+        text=True,
+        check=True
     ).stdout.strip()
 
     if not origin_url.startswith("https://"):
@@ -69,7 +61,7 @@ def main():
         sys.exit(1)
 
     # 8. Build authenticated URL
-    # URL-encode credentials to handle special characters safely.
+    # URL-encode credentials to handle special characters.
     safe_user = quote(user, safe="")
     safe_token = quote(token, safe="")
 
@@ -79,44 +71,48 @@ def main():
         1
     )
 
+    # 9. Check remote tag availability
+    result = subprocess.run(
+        [
+            "git", "ls-remote", "--tags",
+            auth_url,
+            f"refs/tags/{tag_candidate}"
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        print("ERROR: Unable to check remote tags.")
+        print(result.stderr)
+        sys.exit(1)
+
+    if result.stdout.strip():
+        print(f"ERROR: Tag '{tag_candidate}' already exists!")
+        sys.exit(1)
+
+    print(f"Tag '{tag_candidate}' is available. Creating tag...")
+
     try:
-        # 9. Check whether the tag already exists remotely
-        result = subprocess.run(
-            [
-                "git", "ls-remote", "--exit-code", "--tags",
-                auth_url,
-                f"refs/tags/{tag_candidate}"
-            ],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode == 0 and result.stdout.strip():
-            print(f"ERROR: Tag '{tag_candidate}' already exists!")
-            sys.exit(1)
-
-        if result.returncode not in (0, 2):
-            print("ERROR: Unable to check remote tags.")
-            print(result.stderr)
-            sys.exit(1)
-
-        print(f"Tag '{tag_candidate}' is available. Creating tag...")
-
-        # 10. Create the local tag
+        # 10. Create local tag
         subprocess.run(
             ["git", "tag", tag_candidate],
             check=True
         )
 
-        # 11. Push the tag using authenticated URL
+        # 11. Push using authenticated URL (NOT origin)
         subprocess.run(
-            ["git", "push", auth_url, f"refs/tags/{tag_candidate}"],
+            [
+                "git", "push",
+                auth_url,
+                f"refs/tags/{tag_candidate}"
+            ],
             check=True
         )
 
         print(f"SUCCESS: Tag '{tag_candidate}' created and pushed.")
 
-        # 12. Save tag for subsequent Jenkins/Docker stages
+        # 12. Save tag for Jenkins / Docker image
         with open("tag.txt", "w", encoding="utf-8") as tag_file:
             tag_file.write(tag_candidate)
 
