@@ -4,9 +4,10 @@ kind: Pod
 metadata:
   name: kube-agent
   labels:
-    pod-template-source: kubeagent-test1
+    pod-template-source: kubeagent-jenkins
   namespace: jenkins-agent
 spec:
+  serviceAccountName: jenkins-deployer
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:jdk21
