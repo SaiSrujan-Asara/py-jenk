@@ -133,7 +133,7 @@ pipeline {
                             --token="$OPENSHIFT_TOKEN"
 
                             CHART_NAME="app"
-                            CHART_VERSION="1.0.${IMAGE_TAG}"
+                            CHART_VERSION="1.0-${IMAGE_TAG}"
 
                             NEXUS_URL="https://nexus-ui-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/repository/py-app"
 
