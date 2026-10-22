@@ -1,36 +1,51 @@
+
+import os
 import subprocess
+import sys
 
-# Input variables (Jenkins environment variables)
-branch_name = "release/v1.0.0"
-current_build = 5  # Must be an integer so we can mathematically increase it
+# Get values from Jenkins
+branch_name = os.getenv("BRANCH_NAME") or os.getenv("GIT_BRANCH", "")
+current_build = os.getenv("BUILD_NUMBER", "")
 
-# 1. Clean the branch name to get just "26.1.1"
-clean_version = branch_name.replace("release/", "")
+# Validate branch
+if not branch_name.startswith("release/"):
+    print(f"ERROR: Not a release branch: {branch_name}")
+    sys.exit(1)
 
-while True:
-    # 2. Generate the tag candidate (e.g., "26.1.15", "26.1.16", etc.)
-    tag_candidate = f"{clean_version}{current_build}"
-    print(f"Checking tag availability for: {tag_candidate}...")
+# Validate build number
+if not current_build.isdigit():
+    print("ERROR: BUILD_NUMBER is missing or invalid.")
+    sys.exit(1)
 
-    # 3. Check if this tag candidate already exists on GitHub
-    check_remote = subprocess.run(
-        ["git", "ls-remote", "--tags", "origin", tag_candidate],
-        capture_output=True,
-        text=True
-    )
+# Generate tag
+clean_version = branch_name.replace("release/", "", 1)
+tag_candidate = f"{clean_version}{current_build}"
 
-    # 4. If the output is empty, the tag does NOT exist. It's safe to use!
-    if not check_remote.stdout.strip():
-        print(f"✨ Success! '{tag_candidate}' is available.")
-        break
-    
-    # 5. If it exists, warn the user, increment the build number, and try again
-    print(f"⚠️ Tag '{tag_candidate}' already exists on GitHub.")
-    current_build += 1
+print(f"Checking tag availability: {tag_candidate}")
 
-# --- At this point, tag_candidate holds the next available version ---
-print(f"🚀 Final tag selected for pipeline: {tag_candidate}")
+# Check whether tag exists remotely
+result = subprocess.run(
+    [
+        "git", "ls-remote", "--tags", "origin",
+        f"refs/tags/{tag_candidate}"
+    ],
+    capture_output=True,
+    text=True
+)
 
-# Optional: Run Git commands to create and push the safe tag
-# subprocess.run(["git", "tag", tag_candidate])
-# subprocess.run(["git", "push", "origin", tag_candidate])
+if result.returncode != 0:
+    print("ERROR: Unable to check remote tags.")
+    print(result.stderr)
+    sys.exit(1)
+
+if result.stdout.strip():
+    print(f"ERROR: Tag '{tag_candidate}' is already in use!")
+    sys.exit(1)
+
+print(f"Tag '{tag_candidate}' is available. Creating tag...")
+
+# Create and push tag
+subprocess.run(["git", "tag", tag_candidate], check=True)
+subprocess.run(["git", "push", "origin", tag_candidate], check=True)
+
+print(f"SUCCESS: Tag '{tag_candidate}' created and pushed.")
