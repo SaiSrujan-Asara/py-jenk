@@ -126,8 +126,8 @@ pipeline {
             } 
         }
         stage('OPEN SHIFT LOGIN'){
-            container('cd-image') {
-                steps{
+            steps{
+                container('cd-image') {
                     withCredentials([string(credentialsId: 'openshift-k8s',variable: 'OPENSHIFT_TOKEN')]) 
                     {
                         sh '''
