@@ -14,6 +14,9 @@ pipeline {
             }
         }
         stage('OSS SCANNER'){
+            when {
+                expression { isReleaseBranch() || isDevBranch() }
+            }
             options {
               timeout(time: 59, unit: 'MINUTES') 
             }
@@ -24,6 +27,9 @@ pipeline {
             }
         }
         stage('SONAR QUBE STAGE'){
+            when {
+                expression { isReleaseBranch() || isDevBranch() }
+            }
             options {
                 timeout(time: 15, unit: 'MINUTES')
             }
@@ -32,6 +38,17 @@ pipeline {
                     runSonarQube()
                 }
             }    
+        }
+        stage('TAG GENERATION FOR RELEASE BRANCH'){
+            when{
+                expression { isReleaseBranch() }
+            }
+            steps{
+                script{
+                    runTagGen()
+                }
+
+            }
         }
         stage('DOCKER IMAGE BUILD & PUSH') {
             options {
@@ -109,6 +126,17 @@ pipeline {
     }
 }
 
+def isDevBranch() {
+    return env.BRANCH_NAME == 'main' ||
+           env.BRANCH_NAME == 'development1' ||
+           env.BRANCH_NAME.startsWith('feature/') ||
+           env.BRANCH_NAME.startsWith('bugfix/') ||
+           env.BRANCH_NAME.startsWith('PR-')
+}
+
+def isReleaseBranch() {
+    return env.BRANCH_NAME ==~ /release\/.+/
+}
 
 def runOSSScanner() {
     container('ci-image') {
@@ -143,6 +171,16 @@ def runSonarQube() {
     }
 }
 
+def runTagGen(){
+  container('ci-image'){
+        withCredentials([usernamePassword(credentialsId: 'ghcr',usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_PASS')]) 
+        {
+            sh ''''
+              echo "hello"
+            '''
+        }
+    }
+}
 
 def buildAndPushDockerImage() {
     container('ci-image') {
