@@ -11,9 +11,7 @@ pipeline {
         stage('SETUP ENV'){
             steps{
                 script{
-                    env.TIMESTAMP = new Date().format('yyyyMMdd-HHmmss', TimeZone.getTimeZone('IST'))
-                    env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.TIMESTAMP}"
-                    echo "Image Tag: ${env.IMAGE_TAG}"
+                    getImageTag()
                 }
             }
         }
@@ -95,7 +93,7 @@ pipeline {
                 container('cd-image') {
                     sh '''
 
-                    IMAGE_TAG = "${BUILD_NUMBER}-${TIMESTAMP}"
+                    echo "${IMAGE_TAG}"
                     
                     cd k8s
                     
@@ -159,6 +157,12 @@ pipeline {
 
 def getBranchName() {
     return env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+}
+
+def getImageTag() {
+    env.TIMESTAMP = new Date().format('yyyyMMdd-HHmmss', TimeZone.getTimeZone('IST'))
+    env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.TIMESTAMP}"
+    echo "Image Tag: ${env.IMAGE_TAG}"
 }
 
 def isDevBranch() {
