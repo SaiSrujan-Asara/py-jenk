@@ -10,8 +10,8 @@ pipeline {
         stage('SETUP ENV'){
             steps{
                 script{
-                    def timestamp = new Date().format('yyyyMMdd-HHmmss', TimeZone.getTimeZone('UTC'))
-                    env.IMAGE_TAG = "${env.BUILD_NUMBER}-${timestamp}"
+                    env.TIMESTAMP = new Date().format('yyyyMMdd-HHmmss', TimeZone.getTimeZone('IST'))
+                    env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.TIMESTAMP}"
                     echo "Image Tag: ${env.IMAGE_TAG}"
                 }
             }
@@ -87,11 +87,14 @@ pipeline {
             }
         }
         stage('HELM PACKAGE AND PUSH'){
+            when{
+                expression { isDevBranch() }
+            }
             steps{
                 container('cd-image') {
                     sh '''
 
-                    IMAGE_TAG = "${BUILD_NUMBER}-${timestamp}"
+                    IMAGE_TAG = "${BUILD_NUMBER}-${TIMESTAMP}"
                     
                     cd k8s
                     
@@ -119,6 +122,9 @@ pipeline {
             } 
         }
         stage('OPEN SHIFT LOGIN'){
+            when{
+                expression { isDevBranch() }
+            }
             steps{
                 container('cd-image') {
                     withCredentials([string(credentialsId: 'openshift-k8s',variable: 'OPENSHIFT_TOKEN')]) 
