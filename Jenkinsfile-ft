@@ -79,7 +79,7 @@ pipeline {
 
                             # Validate and render
                             helm lint build/app
-                            helm template myapp build/app  > /dev/null
+                            helm template myapp build/app 
 
                             # Package
                             helm package build/app \
@@ -98,11 +98,17 @@ pipeline {
                 }
             } 
         }
-        stage('Approve based on environment lead') {
+        stage('APPROVE DEPLOYMENT FOR PROD ') {
             input {
-                message 'Please select environment'
+                message """ Approve production deployment Below :-
+                        Chart: "${CHART_NAME}"
+                        Chart Version: "${CHART_VERSION}"
+                        App Version: "${APP_VERSION}"
+                        Namespace: prod
+                        Image Version: "${IMAGE_TAG}"
+                        """
                 id 'envId'
-                ok 'Submit'
+                ok 'APPROVE AND DEPLOY'
                 submitterParameter 'approverId'
                 parameters {
                     choice choices: ['Prod', 'Pre-Prod'], name: 'envType'
