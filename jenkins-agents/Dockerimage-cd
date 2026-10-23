@@ -48,6 +48,12 @@ RUN curl -fsSLo /tmp/openshift-client-linux.tar.gz \
     && install -m 0755 /tmp/oc /usr/local/bin/oc \
     && rm -f /tmp/openshift-client-linux.tar.gz /tmp/oc /tmp/kubectl
 
+# Install YQ
+RUN curl -fsSL \
+    https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+    -o /usr/local/bin/yq \
+    && chmod +x /usr/local/bin/yq
+
 WORKDIR /workspace
 
 # Verify installed tools

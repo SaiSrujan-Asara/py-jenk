@@ -25,7 +25,7 @@ spec:
           mountPath: /pip-cache
 
     - name: cd-image
-      image: ghcr.io/saisrujan-asara/cd-image:v2
+      image: ghcr.io/saisrujan-asara/cd-image:v3
       command:
         - sleep
       args:
