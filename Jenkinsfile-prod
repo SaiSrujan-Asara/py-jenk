@@ -142,7 +142,7 @@ pipeline {
 
                             pwd
 
-                            ll
+                            ls
                             
                           # 1. Download the exact package published to Nexus
                           #  curl --fail --silent --show-error \
