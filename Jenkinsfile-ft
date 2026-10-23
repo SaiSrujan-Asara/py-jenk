@@ -56,7 +56,7 @@ pipeline {
                         
                         sleep 5
 
-                        helm template ./app --set image_version=${IMAGE_TAG} -f ./app/values-prod.yaml
+                        helm template ./app --set image_version="${IMAGE_TAG}" -f ./app/values-prod.yaml
 
                         sleep 5
 
