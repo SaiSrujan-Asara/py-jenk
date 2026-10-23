@@ -158,7 +158,7 @@ pipeline {
 
                            CHART_VERSION="${CHART_NAME}-${CHART_VERSION}" yq -i \
                            '.spec.source.targetRevision = strenv(CHART_VERSION)' \
-                           argocd/application.yaml
+                           application.yaml
                         '''
                     }
                }   
