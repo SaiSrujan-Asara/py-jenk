@@ -33,9 +33,11 @@ pipeline {
         }
         stage('CHECK OUT') {
             steps {
-              git url: 'https://github.com/SaiSrujan-Asara/py-jenk.git/',
-              branch: "${env.BRANCH_NAME}",
-              credentialsId: 'github-repo1'
+                container('cd-image') {
+                    git url: 'https://github.com/SaiSrujan-Asara/py-jenk.git/',
+                    branch: "${env.BRANCH_NAME}",
+                    credentialsId: 'github-repo1'
+                }
             }
         }
 
