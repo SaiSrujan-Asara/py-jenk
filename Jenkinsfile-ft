@@ -28,6 +28,13 @@ pipeline {
                         kubectl auth whoami
                         kubectl auth can-i create deployments -n prod
                         kubectl get deployments -n prod
+
+                        kubectl auth can-i get secrets -n prod
+                        kubectl auth can-i list secrets -n prod
+                        kubectl auth can-i create secrets -n prod
+                        kubectl auth can-i update secrets -n prod
+                        kubectl auth can-i patch deployments -n prod
+                        kubectl auth can-i create services -n prod
                     '''
                 }
             }
