@@ -35,7 +35,7 @@ pipeline {
             steps {
                 container('cd-image') {
                     git url: 'https://github.com/SaiSrujan-Asara/py-jenk.git/',
-                    branch: "${env.BRANCH_NAME}",
+                    branch: "main",
                     credentialsId: 'github-repo1'
                 }
             }
