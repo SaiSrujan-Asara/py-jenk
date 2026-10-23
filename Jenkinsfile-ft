@@ -47,29 +47,22 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus',usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) 
                     {
                         sh '''
+                            echo "${IMAGE_TAG}"
+                            cd k8s
 
-                        echo "${IMAGE_TAG}"
-                        
-                        cd k8s
-                        
-                        helm lint ./app
-                        
-                        sleep 5
+                            helm lint ./app
+                            helm template ./app --set image_version="${IMAGE_TAG}" -f ./app/values-prod.yaml > /dev/null
 
-                        helm template ./app --set image_version="${IMAGE_TAG}" -f ./app/values-prod.yaml
+                            helm package ./app \
+                                --version "${CHART_VERSION}" \
+                                --app-version "${IMAGE_TAG}"
 
-                        sleep 5
+                            mv "app-${CHART_VERSION}.tgz" "${CHART_PACKAGE_NAME}-${CHART_VERSION}.tgz"
 
-                        helm package ./app \
-                        --version "${CHART_VERSION}" \
-                        --app-version "${IMAGE_TAG}" \
-
-                        mv "app-${CHART_VERSION}.tgz" "${CHART_PACKAGE_NAME}-${CHART_VERSION}.tgz"
-
-                        curl -u '${NEXUS_USER}:${NEXUS_PASS}' \
-                        --upload-file "${CHART_PACKAGE_NAME}-${CHART_VERSION}.tgz" \
-                        "${CHART_REGISTRY}"
-
+                            curl -v --fail-with-body \
+                                -u "${NEXUS_USER}:${NEXUS_PASS}" \
+                                --upload-file "${CHART_PACKAGE_NAME}-${CHART_VERSION}.tgz" \
+                                "${CHART_REGISTRY}${CHART_PACKAGE_NAME}-${CHART_VERSION}.tgz"
                         '''
                     }
                 }
