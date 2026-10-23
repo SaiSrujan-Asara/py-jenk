@@ -159,6 +159,8 @@ pipeline {
                            CHART_VERSION="${CHART_NAME}-${CHART_VERSION}" yq -i \
                            '.spec.source.targetRevision = strenv(CHART_VERSION)' \
                            application.yaml
+
+                           kubectl apply -f application.yaml
                         '''
                     }
                }   
