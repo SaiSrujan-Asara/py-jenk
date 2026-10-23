@@ -31,6 +31,7 @@ spec:
       containers:
         - name: c1
           image: ghcr.io/saisrujan-asara/my-app:{{ .Values.image_version }}
+          imagePullPolicy: Always
 
           ports:
             - name: http
