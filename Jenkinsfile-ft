@@ -56,6 +56,13 @@ pipeline {
 
                     helm template ./app --set image_version=${IMAGE_TAG} -f ./app/values-prod.yaml
 
+                    sleep 5
+
+                    helm upgrade --install myapp ./app \
+                    --namespace prod \
+                    --set image_version=${IMAGE_TAG} \
+                    -f ./app/values-prod.yaml
+
 
                     '''
                 }
