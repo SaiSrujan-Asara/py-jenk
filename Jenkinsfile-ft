@@ -60,7 +60,7 @@ pipeline {
                             curl -v --fail-with-body \
                                 -u "${NEXUS_USER}:${NEXUS_PASS}" \
                                 --upload-file "${CHART_NAME}-${CHART_VERSION}.tgz" \
-                                "${CHART_REGISTRY}/${CHART_NAME}-${CHART_VERSION}.tgz"
+                                "${CHART_REGISTRY}${CHART_NAME}-${CHART_VERSION}.tgz"
                         '''
                     }
                 }
@@ -76,7 +76,11 @@ pipeline {
                             curl --fail --silent --show-error \
                             --user "${NEXUS_USER}:${NEXUS_PASS}" \
                             --output "${CHART_NAME}-${CHART_VERSION}.tgz" \
-                            "${CHART_REGISTRY}/${CHART_NAME}-${CHART_VERSION}.tgz"
+                            "${CHART_REGISTRY}${CHART_NAME}-${CHART_VERSION}.tgz"
+
+                            helm upgrade --install myapp \
+                            "./${CHART_NAME}-${CHART_VERSION}.tgz" \
+                            --wait
                         '''
                     }
                }   
