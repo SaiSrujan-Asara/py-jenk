@@ -80,6 +80,7 @@ pipeline {
 
                             helm upgrade --install myapp \
                             "./${CHART_NAME}-${CHART_VERSION}.tgz" \
+                            --namespace prod \
                             --wait
                         '''
                     }
