@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: py-app
+  namespace: argocd
+spec:
+  project: default
+
+  # source:
+  #   repoURL: https://github.com/SaiSrujan-Asara/py-jenk.git
+  #   targetRevision: main
+  #   path: k8s/app
+  #   helm:
+  #     valueFiles:
+  #       - values-prod.yaml
+
+  source:
+    repoURL: https://nexus-ui-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/repository/py-app/
+    chart: app
+    targetRevision: 1.0.1-52-Prod
+    helm:
+      releaseName: myapp
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

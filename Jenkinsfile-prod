@@ -132,24 +132,29 @@ pipeline {
                 echo "Deployment approved to ${env.envType} by ${env.approverId}."
             }
         }
-        stage("DEPLOY"){
+        stage("DEPLOY USING ARGOCD"){
             steps{
                 container('cd-image') {
                     withCredentials([usernamePassword(credentialsId: 'nexus',usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) 
                     {
                         sh '''
-                            cd k8s
+                            cd argocd
                             
-                            # 1. Download the exact package published to Nexus
-                            curl --fail --silent --show-error \
-                            --user "${NEXUS_USER}:${NEXUS_PASS}" \
-                            --output "${CHART_NAME}-${CHART_VERSION}.tgz" \
-                            "${CHART_REGISTRY}${CHART_NAME}-${CHART_VERSION}.tgz"
+                          # 1. Download the exact package published to Nexus
+                          #  curl --fail --silent --show-error \
+                          # --user "${NEXUS_USER}:${NEXUS_PASS}" \
+                          #  --output "${CHART_NAME}-${CHART_VERSION}.tgz" \
+                          # "${CHART_REGISTRY}${CHART_NAME}-${CHART_VERSION}.tgz"
 
-                            helm upgrade --install myapp \
-                            "./${CHART_NAME}-${CHART_VERSION}.tgz" \
-                            --namespace prod \
-                            --wait
+                           # helm upgrade --install myapp \
+                           # "./${CHART_NAME}-${CHART_VERSION}.tgz" \
+                           # --namespace prod \
+                           # --wait
+
+
+                           CHART_VERSION="${CHART_NAME}-${CHART_VERSION}" yq -i \
+                           '.spec.source.targetRevision = strenv(CHART_VERSION)' \
+                           argocd/application.yaml
                         '''
                     }
                }   
