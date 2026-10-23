@@ -13,6 +13,7 @@ pipeline {
         IMAGE_REGISTRY = 'ghcr.io/saisrujan-asara'
         CHART_NAME = 'app'
         CHART_VERSION = "1.0.1-${BUILD_NUMBER}-Prod"
+        APP_VERSION = "1.0.1-${BUILD_NUMBER}-Prod"
         CHART_REGISTRY = 'https://nexus-ui-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/repository/py-app/'
     }
 
@@ -47,20 +48,42 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus',usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) 
                     {
                         sh '''
-                            echo "${IMAGE_TAG}"
+
                             cd k8s
 
-                            helm lint ./app
-                            helm template ./app --set image_version="${IMAGE_TAG}" -f ./app/values-prod.yaml > /dev/null
+                            rm -rf build
+                            mkdir -p build
+                            cp -a app build/app
 
-                            helm package ./app \
-                                --version "${CHART_VERSION}" \
-                                --app-version "${IMAGE_TAG}"
+                            # Update chart metadata
+                            CHART_VERSION="${CHART_VERSION}" \
+                            APP_VERSION="${APP_VERSION}" \
+                            yq -i \
+                              '.version = strenv(CHART_VERSION) |
+                               .appVersion = strenv(APP_VERSION)' \
+                              build/app/Chart.yaml
 
-                            curl -v --fail-with-body \
-                                -u "${NEXUS_USER}:${NEXUS_PASS}" \
-                                --upload-file "${CHART_NAME}-${CHART_VERSION}.tgz" \
-                                "${CHART_REGISTRY}${CHART_NAME}-${CHART_VERSION}.tgz"
+                            # Inject the image tag
+                            IMAGE_TAG="${APP_VERSION}" yq -i \
+                              '.image_version = strenv(IMAGE_TAG)' \
+                              build/app/values.yaml
+
+                            # Validate and render
+                            helm lint build/app
+                            helm template myapp build/app  > /dev/null
+
+                            # Package
+                            helm package build/app \
+                            --destination build
+
+
+                            PACKAGE="build/${CHART_NAME}-${CHART_VERSION}.tgz"
+
+                            # Publish to Nexus
+                            curl --fail-with-body --silent --show-error \
+                            -u "${NEXUS_USER}:${NEXUS_PASS}" \
+                            --upload-file "$PACKAGE" \
+                            "${CHART_REGISTRY}${CHART_NAME}-${CHART_VERSION}.tgz"
                         '''
                     }
                 }
@@ -82,9 +105,6 @@ pipeline {
 
                             helm upgrade --install myapp \
                             "./${CHART_NAME}-${CHART_VERSION}.tgz" \
-                            --namespace prod \
-                            -f ./app/values-prod.yaml \
-                            --set image_version="${IMAGE_TAG}" \
                             --wait
                         '''
                     }

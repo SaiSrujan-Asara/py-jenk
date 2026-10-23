@@ -5,6 +5,8 @@ metadata:
   labels:
     app: py-app
     namespace: {{ .Values.namespace }}
+    app-version: {{ .Chart.AppVersion | quote }}
+    chart-version: {{ .Chart.Version | quote }}
 spec:
   replicas: {{ .Values.replicas }}
 
