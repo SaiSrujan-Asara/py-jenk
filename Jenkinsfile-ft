@@ -3,22 +3,62 @@ pipeline {
     agent {
         kubernetes {
             yamlFile 'jenkins-agents/buildconfig.yaml'
-            defaultContainer 'cd-image'
+            defaultContainer 'jnlp'
         }
     }
 
 
     stages {
+        environment{
+            NAMESPACE = 'prod'
+            IMAGE_NAME = 'my-app'
+            IMAGE_TAG = '26.10.119'
+            IMAGE_REGISTRY = 'ghcr.io/saisrujan-asara'
+            CHART_NAME = 'my-app-prod'
+            CHART_VERSION = '1.0.1'
+            CHART_REGISTRY = 'https://nexus-ui-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/repository/py-app/'
+
+        }
         stage('Check FT access') {
             steps {
-                sh '''
-                    set -eu
-                    kubectl version
-                    kubectl auth whoami
-                    kubectl auth can-i create deployments -n prod
-                    kubectl get deployments -n prod
-                '''
+                container('cd-image') {
+                    sh '''
+                        set -eu
+                        kubectl version
+                        kubectl auth whoami
+                        kubectl auth can-i create deployments -n prod
+                        kubectl get deployments -n prod
+                    '''
+                }
             }
+        }
+        stage('CHECK OUT') {
+            steps {
+              git url: 'https://github.com/SaiSrujan-Asara/py-jenk.git/',
+              branch: "${env.BRANCH_NAME}",
+              credentialsId: 'github-repo1'
+            }
+        }
+
+        stage('HELM PACKAGE AND PUSH'){
+            steps{
+                container('cd-image') {
+                    sh '''
+
+                    echo "${IMAGE_TAG}"
+                    
+                    cd k8s
+                    
+                    helm lint ./app
+                    
+                    sleep 5
+
+                    helm template ./app --set image_version=${IMAGE_TAG} -f values-prod.yaml
+
+
+                    '''
+                }
+            } 
         }
     }
 }

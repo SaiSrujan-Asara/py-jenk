@@ -1,5 +1,7 @@
-replicas: 3
+replicas: 1
 
 name: py-app
 
-image_version: ${BUILD_NUMBER}
+image_version: ${IMAGE_TAG}
+
+namespace: asarasaisrujan-dev

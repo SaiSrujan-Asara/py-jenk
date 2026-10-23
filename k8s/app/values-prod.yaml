@@ -1,0 +1,7 @@
+replicas: 1
+
+name: py-app
+
+image_version: ${IMAGE_TAG}
+
+namespace: prod
