@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.name }}
   labels:
     app: py-app
-    namespace: {{ .Values.namepsace}}
+    namespace: {{ .Values.namepsace }}
 spec:
   replicas: {{ .Values.replicas }}
 
