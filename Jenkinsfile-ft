@@ -55,6 +55,8 @@ pipeline {
                             mkdir -p build
                             cp -a app build/app
 
+                            cp app/values-prod.yaml build/app/values.yaml
+
                             # Update chart metadata
                             CHART_VERSION="${CHART_VERSION}" \
                             APP_VERSION="${APP_VERSION}" \
@@ -64,7 +66,7 @@ pipeline {
                               build/app/Chart.yaml
 
                             # Inject the image tag
-                            IMAGE_TAG="${APP_VERSION}" yq -i \
+                            IMAGE_TAG="${IMAGE_TAG}" yq -i \
                               '.image_version = strenv(IMAGE_TAG)' \
                               build/app/values.yaml
 
