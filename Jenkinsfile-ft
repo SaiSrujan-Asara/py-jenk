@@ -47,8 +47,6 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus',usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) 
                     {
                         sh '''
-                            set -e
-                            set +x
                             echo "${IMAGE_TAG}"
                             cd k8s
 
@@ -74,8 +72,6 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus',usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) 
                     {
                         sh '''
-                            set -e 
-                            set +x
                             # 1. Download the exact package published to Nexus
                             curl --fail --silent --show-error \
                             --user "${NEXUS_USER}:${NEXUS_PASS}" \
