@@ -2,6 +2,6 @@ replicas: 5
 
 name: py-app
 
-image_version: ${IMAGE_TAG}
+image_version: "26.10.119"
 
 namespace: prod
