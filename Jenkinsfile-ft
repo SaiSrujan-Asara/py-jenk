@@ -101,11 +101,11 @@ pipeline {
         stage('APPROVE DEPLOYMENT FOR PROD ') {
             input {
                 message """ Approve production deployment Below :-
-                        Chart: "${CHART_NAME}"
-                        Chart Version: "${CHART_VERSION}"
-                        App Version: "${APP_VERSION}"
+                        Chart: ${CHART_NAME}
+                        Chart Version: ${CHART_VERSION}
+                        App Version: ${APP_VERSION}
                         Namespace: prod
-                        Image Version: "${IMAGE_TAG}"
+                        Image Version: ${IMAGE_TAG}
                         """
                 id 'envId'
                 ok 'APPROVE AND DEPLOY'
