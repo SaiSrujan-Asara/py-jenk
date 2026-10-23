@@ -72,6 +72,8 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus',usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) 
                     {
                         sh '''
+                            cd k8s
+                            
                             # 1. Download the exact package published to Nexus
                             curl --fail --silent --show-error \
                             --user "${NEXUS_USER}:${NEXUS_PASS}" \
