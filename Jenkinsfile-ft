@@ -116,8 +116,7 @@ pipeline {
             }
 
             steps {
-                echo "Deployment approved to ${envType} by ${approverId}."
-
+                echo "Deployment approved to ${env.envType} by ${env.approverId}."
             }
         }
         stage("DEPLOY"){
