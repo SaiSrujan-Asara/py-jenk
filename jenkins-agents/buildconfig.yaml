@@ -8,6 +8,8 @@ metadata:
   namespace: jenkins-agent
 spec:
   serviceAccountName: jenkins-deployer
+  imagePullSecrets:
+        - name: ghcr-secret
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:jdk21
