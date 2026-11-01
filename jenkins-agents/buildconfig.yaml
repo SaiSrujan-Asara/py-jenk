@@ -14,10 +14,6 @@ spec:
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:jdk21
-      command:
-        - sleep
-      args:
-        - "9999999"
 
     - name: ci-image
       image: ghcr.io/saisrujan-asara/ci-image:v1
