@@ -8,6 +8,7 @@ metadata:
   namespace: jenkins-agent
 spec:
   serviceAccountName: jenkins-deployer
+  dnsPolicy: ClusterFirst
   imagePullSecrets:
         - name: ghcr-secret
   containers:

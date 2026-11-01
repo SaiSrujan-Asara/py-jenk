@@ -17,7 +17,7 @@ spec:
   source:
     repoURL: https://nexus-ui-asarasaisrujan-dev.apps.rm1.0a51.p1.openshiftapps.com/repository/py-app/
     chart: app
-    targetRevision: 1.0.1-52-Prod
+    targetRevision: 1.0.1-57-Prod
     helm:
       releaseName: myapp
 
